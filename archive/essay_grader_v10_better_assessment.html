@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生作文評分系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            padding: 40px;
+        }
+        
+        .feature-notice {
+            background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
+            border: 2px solid #0288d1;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .feature-notice h3 {
+            color: #01579b;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .feature-notice p {
+            color: #0277bd;
+            line-height: 1.6;
+        }
+        
+        .demo-section {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border: 2px solid #22c55e;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .demo-button {
+            background: linear-gradient(45deg, #22c55e, #16a34a);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+        
+        .upload-section {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border: 3px dashed #cbd5e1;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-options {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .upload-option {
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+            padding: 30px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .upload-option:hover {
+            border-color: #4f46e5;
+            background: linear-gradient(135deg, #f1f5f9, #ddd6fe);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.15);
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            color: #4f46e5;
+            margin-bottom: 20px;
+        }
+        
+        .upload-text {
+            font-size: 1.3rem;
+            color: #334155;
+            margin-bottom: 10px;
+        }
+        
+        .upload-hint {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        #imageInput {
+            display: none;
+        }
+        
+        .preview-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        /* 相機全螢幕覆蓋層 */
+        .camera-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .camera-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+        
+        .camera-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .camera-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+        
+        .camera-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .camera-header h3 {
+            color: white;
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        
+        .camera-content {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        #cameraVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .camera-overlay-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 600px;
+            height: 70%;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            pointer-events: none;
+        }
+        
+        .frame-corner {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #4f46e5;
+        }
+        
+        .frame-corner.tl {
+            top: -3px;
+            left: -3px;
+            border-right: none;
+            border-bottom: none;
+            border-radius: 15px 0 0 0;
+        }
+        
+        .frame-corner.tr {
+            top: -3px;
+            right: -3px;
+            border-left: none;
+            border-bottom: none;
+            border-radius: 0 15px 0 0;
+        }
+        
+        .frame-corner.bl {
+            bottom: -3px;
+            left: -3px;
+            border-right: none;
+            border-top: none;
+            border-radius: 0 0 0 15px;
+        }
+        
+        .frame-corner.br {
+            bottom: -3px;
+            right: -3px;
+            border-left: none;
+            border-top: none;
+            border-radius: 0 0 15px 0;
+        }
+        
+        .frame-text {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        
+        .camera-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.8);
+        }
+        
+        .camera-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .camera-btn.primary {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+            min-width: 120px;
+        }
+        
+        .camera-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+        }
+        
+        .camera-btn.secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .camera-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .camera-btn-icon {
+            font-size: 1.2rem;
+        }
+        
+        .manual-input {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border: 2px solid #f59e0b;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .manual-input h3 {
+            color: #92400e;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .manual-input textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 1px solid #d97706;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+        }
+        
+        .manual-input textarea:focus {
+            outline: none;
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .result-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left: 5px solid #4f46e5;
+        }
+        
+        .result-section h3 {
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .recognized-text {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .error-list {
+            list-style: none;
+        }
+        
+        .error-item {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+        
+        .error-original {
+            color: #dc2626;
+            font-weight: bold;
+        }
+        
+        .error-correct {
+            color: #059669;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .grade-display {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border-radius: 15px;
+            border: 2px solid #10b981;
+        }
+        
+        .grade-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #059669;
+            margin-bottom: 10px;
+        }
+        
+        .grade-text {
+            font-size: 1.2rem;
+            color: #065f46;
+        }
+        
+        .improved-text {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #0ea5e9;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .suggestions {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .error-types {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .error-tag {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                min-width: 200px;
+            }
+            
+            .upload-options {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .upload-option {
+                min-width: auto;
+                max-width: none;
+            }
+            
+            .camera-overlay-frame {
+                width: 95%;
+                height: 60%;
+            }
+            
+            .camera-controls {
+                padding: 20px;
+                gap: 15px;
+            }
+            
+            .camera-btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+                min-width: 100px;
+            }
+            
+            .camera-header {
+                padding: 15px;
+            }
+            
+            .camera-header h3 {
+                font-size: 1rem;
+            }
+            
+            .frame-text {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
+        }
+        
+        /* 橫屏模式優化 */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .camera-overlay-frame {
+                width: 80%;
+                height: 80%;
+            }
+            
+            .camera-controls {
+                padding: 15px;
+            }
+            
+            .camera-header {
+                padding: 10px 20px;
+            }
+            
+            .frame-text {
+                top: -30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI作文評分系統</h1>
+            <p>Google Cloud Vision API • 高精度辨識 • PDF報告</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="feature-notice">
+                <h3>🚀 Google Cloud Vision API</h3>
+                <p>本系統使用 Google Cloud Vision API 進行高精度文字辨識，支援手寫和印刷體英文，辨識準確率超過95%。<br>
+                需要設定 Google Cloud Vision API 金鑰才能使用圖片辨識功能。</p>
+            </div>
+            
+            <div class="upload-section">
+                <div class="upload-options">
+                    <div class="upload-option" onclick="document.getElementById('imageInput').click()">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">選擇照片</div>
+                        <div class="upload-hint">從相簿選擇</div>
+                    </div>
+                    
+                    <div class="upload-option" onclick="openCamera()">
+                        <div class="upload-icon">📸</div>
+                        <div class="upload-text">拍攝照片</div>
+                        <div class="upload-hint">開啟相機</div>
+                    </div>
+                </div>
+                <input type="file" id="imageInput" accept="image/*" style="display: none;">
+            </div>
+            
+            <!-- 全螢幕相機介面 -->
+            <div class="camera-overlay" id="cameraOverlay" style="display: none;">
+                <div class="camera-container">
+                    <div class="camera-header">
+                        <button class="camera-close" onclick="closeCamera()">✕</button>
+                        <h3>拍攝作文照片</h3>
+                        <div></div>
+                    </div>
+                    
+                    <div class="camera-content">
+                        <video id="cameraVideo" autoplay muted playsinline></video>
+                        <canvas id="cameraCanvas" style="display: none;"></canvas>
+                        
+                        <div class="camera-overlay-frame">
+                            <div class="frame-corner tl"></div>
+                            <div class="frame-corner tr"></div>
+                            <div class="frame-corner bl"></div>
+                            <div class="frame-corner br"></div>
+                            <div class="frame-text">請將作文對準框內</div>
+                        </div>
+                    </div>
+                    
+                    <div class="camera-controls">
+                        <button class="camera-btn secondary" onclick="closeCamera()">取消</button>
+                        <button class="camera-btn primary" onclick="capturePhoto()">
+                            <span class="camera-btn-icon">📸</span>
+                            拍攝
+                        </button>
+                        <button class="camera-btn secondary" onclick="switchCamera()" id="switchBtn" style="display: none;">
+                            🔄 翻轉
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-container" id="previewContainer"></div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div id="loadingText">正在使用 Google Cloud Vision 辨識文字...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+            
+            <div class="manual-input">
+                <h3>✏️ 或者直接輸入作文內容：</h3>
+                <textarea id="manualText" placeholder="請在此輸入學生的作文內容..."></textarea>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="analyzeEssay()">
+                    🔍 分析文字內容
+                </button>
+                <button class="btn btn-secondary" id="downloadBtn" onclick="downloadPDF()" disabled>
+                    📄 下載PDF報告
+                </button>
+            </div>
+            
+            <div class="results" id="results">
+                <div class="result-section">
+                    <h3>📖 1. 辨識文字</h3>
+                    <div class="recognized-text" id="recognizedText"></div>
+                </div>
+                
+                <div class="result-section">
+                    <h3>❌ 2. 錯誤分析</h3>
+                    <ul class="error-list" id="errorList"></ul>
+                </div>
+                
+                <div class="result-section">
+                    <h3>✏️ 3. 改寫後版本</h3>
+                    <div class="improved-text" id="improvedText"></div>
+                </div>
+                
+                <div class="result-section">
+                    <h3>🎯 4. 整題評級</h3>
+                    <div class="grade-display">
+                        <div class="grade-number" id="gradeNumber">-</div>
+                        <div class="grade-text" id="gradeText">等待分析...</div>
+                    </div>
+                </div>
+                
+                <div class="result-section">
+                    <h3>💡 5. 建議改進方式</h3>
+                    <div class="suggestions" id="suggestions"></div>
+                </div>
+                
+                <div class="result-section">
+                    <h3>🏷️ 6. 學生主要錯誤類型</h3>
+                    <div class="error-types" id="errorTypes"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🔑 在此處設定您的 Google Cloud Vision API 金鑰
+        // ==========================================
+        const GOOGLE_CLOUD_VISION_API_KEY = 'YOUR_API_KEY_HERE';
+        // ==========================================
+        
+        // 全域變數
+        let currentImage = null;
+        let analysisResult = null;
+        let cameraStream = null;
+        let currentFacingMode = 'environment';
+        
+        // 處理圖片上傳
+        document.getElementById('imageInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                currentImage = file;
+                
+                // 顯示預覽
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewContainer = document.getElementById('previewContainer');
+                    previewContainer.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="上傳的作文照片">`;
+                };
+                reader.readAsDataURL(file);
+                
+                // 自動開始Cloud Vision辨識
+                await performCloudVisionOCR(file);
+            }
+        });
+        
+        // 使用 Google Cloud Vision API 進行 OCR
+        async function performCloudVisionOCR(imageFile) {
+            // 檢查 API 金鑰是否已設定
+            if (!GOOGLE_CLOUD_VISION_API_KEY || GOOGLE_CLOUD_VISION_API_KEY === 'YOUR_API_KEY_HERE') {
+                alert('請先在程式碼中設定 Google Cloud Vision API 金鑰，或使用示範功能');
+                return;
+            }
+            
+            const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loadingText');
+            const progressFill = document.getElementById('progressFill');
+            
+            loading.style.display = 'block';
+            progressFill.style.width = '0%';
+            loadingText.textContent = '正在準備圖片...';
+            
+            try {
+                // 將圖片轉換為 base64
+                const base64Image = await fileToBase64(imageFile);
+                progressFill.style.width = '20%';
+                loadingText.textContent = '正在連接 Google Cloud Vision API...';
+                
+                // 準備 API 請求
+                const apiUrl = `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_CLOUD_VISION_API_KEY}`;
+                const requestBody = {
+                    requests: [
+                        {
+                            image: {
+                                content: base64Image.split(',')[1] // 移除 data:image/jpeg;base64, 前綴
+                            },
+                            features: [
+                                {
+                                    type: 'TEXT_DETECTION',
+                                    maxResults: 1
+                                }
+                            ]
+                        }
+                    ]
+                };
+                
+                progressFill.style.width = '40%';
+                loadingText.textContent = '正在辨識文字...';
+                
+                // 發送請求到 Google Cloud Vision API
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                progressFill.style.width = '80%';
+                loadingText.textContent = '正在處理結果...';
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API 請求失敗: ${errorData.error?.message || response.statusText}`);
+                }
+                
+                const data = await response.json();
+                progressFill.style.width = '100%';
+                loadingText.textContent = '辨識完成！';
+                
+                // 提取辨識的文字
+                if (data.responses && data.responses[0] && data.responses[0].textAnnotations) {
+                    const detectedText = data.responses[0].textAnnotations[0].description;
+                    console.log('Cloud Vision 辨識結果:', detectedText);
+                    
+                    // 將辨識結果放入文字框
+                    document.getElementById('manualText').value = detectedText.trim();
+                    
+                    loading.style.display = 'none';
+                    
+                    // 自動開始分析
+                    setTimeout(() => {
+                        analyzeEssay();
+                    }, 500);
+                    
+                } else {
+                    throw new Error('未能辨識出文字內容');
+                }
+                
+            } catch (error) {
+                console.error('Cloud Vision OCR 錯誤:', error);
+                loading.style.display = 'none';
+                
+                let errorMessage = '文字辨識失敗';
+                
+                if (error.message.includes('API_KEY_INVALID')) {
+                    errorMessage = 'API 金鑰無效，請檢查程式碼中的金鑰是否正確';
+                } else if (error.message.includes('PERMISSION_DENIED')) {
+                    errorMessage = 'API 權限被拒絕，請確認已啟用 Cloud Vision API';
+                } else if (error.message.includes('QUOTA_EXCEEDED')) {
+                    errorMessage = 'API 配額已用完，請檢查您的 Google Cloud 帳單';
+                } else if (error.message.includes('未能辨識出文字內容')) {
+                    errorMessage = '未能辨識出文字內容，請確認圖片清晰度或手動輸入文字';
+                } else {
+                    errorMessage = `辨識失敗：${error.message}`;
+                }
+                
+                alert(errorMessage + '\n\n您可以選擇手動輸入文字內容進行分析。');
+            }
+        }
+        
+        // 將檔案轉換為 base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+        
+        // 開啟相機
+        async function openCamera() {
+            try {
+                const cameraOverlay = document.getElementById('cameraOverlay');
+                const video = document.getElementById('cameraVideo');
+                
+                cameraOverlay.style.display = 'flex';
+                
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    },
+                    audio: false
+                };
+                
+                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = cameraStream;
+                
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                if (videoDevices.length > 1) {
+                    document.getElementById('switchBtn').style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('無法開啟相機:', error);
+                alert('無法開啟相機，請確認已授權相機權限，或使用檔案上傳功能');
+                closeCamera();
+            }
+        }
+        
+        // 關閉相機
+        function closeCamera() {
+            const cameraOverlay = document.getElementById('cameraOverlay');
+            
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            
+            cameraOverlay.style.display = 'none';
+            document.getElementById('switchBtn').style.display = 'none';
+        }
+        
+        // 切換前後鏡頭
+        async function switchCamera() {
+            try {
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                }
+                
+                currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+                
+                const video = document.getElementById('cameraVideo');
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    },
+                    audio: false
+                };
+                
+                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = cameraStream;
+                
+            } catch (error) {
+                console.error('切換相機失敗:', error);
+                alert('切換相機失敗');
+            }
+        }
+        
+        // 拍攝照片
+        function capturePhoto() {
+            try {
+                const video = document.getElementById('cameraVideo');
+                const canvas = document.getElementById('cameraCanvas');
+                const context = canvas.getContext('2d');
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                canvas.toBlob(function(blob) {
+                    const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+                    currentImage = file;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const previewContainer = document.getElementById('previewContainer');
+                        previewContainer.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="拍攝的作文照片">`;
+                    };
+                    reader.readAsDataURL(file);
+                    
+                    closeCamera();
+                    
+                    // 自動開始Cloud Vision辨識
+                    performCloudVisionOCR(file);
+                    
+                }, 'image/jpeg', 0.9);
+                
+            } catch (error) {
+                console.error('拍照失敗:', error);
+                alert('拍照失敗，請重試');
+            }
+        }
+        
+        // 分析文字內容
+        function analyzeEssay() {
+            try {
+                console.log('開始分析...');
+                
+                const textArea = document.getElementById('manualText');
+                if (!textArea) {
+                    console.error('找不到文字輸入區域');
+                    alert('系統錯誤：找不到文字輸入區域');
+                    return;
+                }
+                
+                const manualText = textArea.value.trim();
+                console.log('輸入文字:', manualText);
+                
+                if (!manualText) {
+                    alert('請輸入作文內容或上傳照片');
+                    return;
+                }
+                
+                console.log('開始文字分析...');
+                analysisResult = analyzeText(manualText);
+                console.log('分析結果:', analysisResult);
+                
+                console.log('顯示結果...');
+                displayResults(analysisResult);
+                
+                const results = document.getElementById('results');
+                const downloadBtn = document.getElementById('downloadBtn');
+                
+                if (results) {
+                    results.style.display = 'block';
+                    console.log('結果區域已顯示');
+                    
+                    setTimeout(() => {
+                        results.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                } else {
+                    console.error('找不到結果區域');
+                }
+                
+                if (downloadBtn) {
+                    downloadBtn.disabled = false;
+                    console.log('下載按鈕已啟用');
+                } else {
+                    console.error('找不到下載按鈕');
+                }
+                
+            } catch (error) {
+                console.error('分析過程錯誤:', error);
+                alert('分析過程中發生錯誤：' + error.message);
+            }
+        }
+        
+        // 文字分析邏輯
+        function analyzeText(text) {
+            const errors = [];
+            const errorTypes = new Set();
+            
+            text = text.trim();
+            
+            // 根據級分範例重新設計的錯誤檢測規則
+            const errorRules = [
+                // 極嚴重錯誤 - 直接影響基本理解 (導向1-2級分)
+                { pattern: /\bmy ded want take our\b/gi, correct: 'my dad wants to take us', type: '基本句型錯誤', severity: 'critical', explanation: '句型結構嚴重錯誤' },
+                { pattern: /\bmom call me get up\b/gi, correct: 'mom calls me to get up', type: '基本句型錯誤', severity: 'critical', explanation: '缺少不定詞to' },
+                { pattern: /\bwas attack\b/gi, correct: 'was attacked', type: '被動語態錯誤', severity: 'critical', explanation: '被動語態結構錯誤' },
+                { pattern: /\broofs was blowing\b/gi, correct: 'roofs were blown away', type: '主謂語態錯誤', severity: 'critical', explanation: '主謂不一致且語態錯誤' },
+                { pattern: /\bneed to a lot of money\b/gi, correct: 'need a lot of money', type: '介詞錯誤', severity: 'critical', explanation: '多餘的介詞to' },
+                { pattern: /\bOne of a Bed and Breakfast\b/gi, correct: 'One of the Bed and Breakfasts', type: '冠詞錯誤', severity: 'critical', explanation: 'one of結構錯誤' },
+                
+                // 拼寫錯誤 - 按嚴重程度分類
+                { pattern: /\bvaction\b/gi, correct: 'vacation', type: '拼寫錯誤', severity: 'critical', explanation: '常用單字拼寫錯誤' },
+                { pattern: /\btyphon\b/gi, correct: 'typhoon', type: '拼寫錯誤', severity: 'critical', explanation: '重要單字拼寫錯誤' },
+                { pattern: /\barouna\b/gi, correct: 'around', type: '拼寫錯誤', severity: 'critical', explanation: '基本單字拼寫錯誤' },
+                { pattern: /\bded\b/gi, correct: 'dad', type: '拼寫錯誤', severity: 'critical', explanation: '基本單字拼寫錯誤' },
+                { pattern: /\belefant\b/gi, correct: 'elephant', type: '拼寫錯誤', severity: 'critical', explanation: '單字拼寫嚴重錯誤' },
+                { pattern: /\banimos\b/gi, correct: 'animals', type: '拼寫錯誤', severity: 'critical', explanation: '單字拼寫嚴重錯誤' },
+                { pattern: /\bberger\b/gi, correct: 'burger', type: '拼寫錯誤', severity: 'critical', explanation: '單字拼寫錯誤' },
+                { pattern: /\bwenderful\b/gi, correct: 'wonderful', type: '拼寫錯誤', severity: 'critical', explanation: '單字拼寫錯誤' },
+                
+                // 基本句型錯誤
+                { pattern: /\bToday morning\b/gi, correct: 'This morning', type: '基本句型錯誤', severity: 'critical', explanation: '時間表達錯誤' },
+                { pattern: /\bPizza very good\b/gi, correct: 'The pizza is very good', type: '基本句型錯誤', severity: 'critical', explanation: '缺少動詞和冠詞' },
+                { pattern: /\bWe happy\b/gi, correct: 'We are happy', type: '基本句型錯誤', severity: 'critical', explanation: '缺少be動詞' },
+                { pattern: /\bIs good day\b/gi, correct: 'It is a good day', type: '基本句型錯誤', severity: 'critical', explanation: '缺少主詞和冠詞' },
+                
+                // 中等錯誤 - 影響流暢度但不影響理解 (導向3-4級分)
+                { pattern: /\bcalls him getting up\b/gi, correct: 'calls him to get up', type: '句型錯誤', severity: 'moderate', explanation: '不定詞用法錯誤' },
+                { pattern: /\bthey look a lot of\b/gi, correct: 'they see a lot of', type: '動詞用法錯誤', severity: 'moderate', explanation: '動詞選擇錯誤' },
+                { pattern: /\bthey eats\b/gi, correct: 'they eat', type: '動詞變化錯誤', severity: 'moderate', explanation: '複數主詞動詞不需加s' },
+                { pattern: /\bmom wake\b/gi, correct: 'mom wakes', type: '動詞變化錯誤', severity: 'moderate', explanation: '第三人稱單數動詞需加s' },
+                { pattern: /\btell him to get up early\b/gi, correct: 'tells him to get up early', type: '動詞變化錯誤', severity: 'moderate', explanation: '第三人稱單數動詞需加s' },
+                { pattern: /\bToday is holiday\b/gi, correct: 'Today is a holiday', type: '冠詞錯誤', severity: 'moderate', explanation: '缺少不定冠詞' },
+                { pattern: /\bOn Sunday\.\s/gi, correct: 'On Sunday, ', type: '句型錯誤', severity: 'moderate', explanation: '句子不完整' },
+                { pattern: /\band night we\b/gi, correct: 'and at night we', type: '介詞錯誤', severity: 'moderate', explanation: '缺少介詞' },
+                { pattern: /\bwas changing\b/gi, correct: 'changed', type: '時態錯誤', severity: 'moderate', explanation: '時態使用不當' },
+                
+                // 拼寫錯誤 - 中等程度
+                { pattern: /\bresturant\b/gi, correct: 'restaurant', type: '拼寫錯誤', severity: 'moderate', explanation: '單字拼寫錯誤' },
+                { pattern: /\bdelicous\b/gi, correct: 'delicious', type: '拼寫錯誤', severity: 'moderate', explanation: '單字拼寫錯誤' },
+                
+                // 輕微錯誤 - 不影響理解 (仍可維持4-5級分)
+                { pattern: /\bBecause\s+[A-Z]/g, correct: (match) => match.replace('Because', 'because'), type: '句型結構', severity: 'minor', explanation: 'Because子句應該與主句連接' },
+                { pattern: /\bmom calls her to get up\b/gi, correct: 'mom wakes her up', type: '用字選擇', severity: 'minor', explanation: '用字稍微不自然但可理解' },
+                { pattern: /\bDad decides\b/gi, correct: 'Dad decided', type: '時態錯誤', severity: 'minor', explanation: '時態不一致，但不影響理解' }
+            ];
+            
+            // 檢測錯誤並分類
+            let criticalErrors = 0;
+            let moderateErrors = 0;
+            let minorErrors = 0;
+            
+            errorRules.forEach(rule => {
+                const matches = text.match(rule.pattern);
+                if (matches) {
+                    matches.forEach(match => {
+                        errors.push({
+                            original: match,
+                            correct: typeof rule.correct === 'function' ? rule.correct(match) : rule.correct,
+                            type: rule.type,
+                            explanation: rule.explanation,
+                            severity: rule.severity
+                        });
+                        errorTypes.add(rule.type);
+                        
+                        if (rule.severity === 'critical') criticalErrors++;
+                        else if (rule.severity === 'moderate') moderateErrors++;
+                        else minorErrors++;
+                    });
+                }
+            });
+            
+            // 計算文章複雜度和完整性
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            const words = text.split(/\s+/).filter(w => w.length > 0);
+            const avgWordsPerSentence = words.length / sentences.length;
+            
+            // 檢查是否有連接詞和複雜結構
+            const hasConnectors = /\b(because|after|then|first|afterwards|later)\b/gi.test(text);
+            const hasComplexStructures = avgWordsPerSentence > 8;
+            
+            // 根據範例特徵進行評分
+            let grade = 5;
+            let gradeDescription = '';
+            
+            console.log('錯誤統計:', { criticalErrors, moderateErrors, minorErrors, hasConnectors });
+            
+            if (criticalErrors >= 4 || (criticalErrors >= 3 && !hasConnectors)) {
+                // 對應2級分範例：大量基本錯誤，句型簡單混亂
+                grade = 2;
+                gradeDescription = '部分回答題目之要求，表達上有令人不解/誤解之處；文法、用字等皆有誤，讀者須耐心解讀。';
+            } else if (criticalErrors >= 2 || (criticalErrors >= 1 && moderateErrors >= 3)) {
+                // 對應3級分範例：有嚴重錯誤但整體可理解
+                grade = 3;
+                gradeDescription = '大致回答題目之要求，但未能完全達意；文法、用字等有誤，稍影響讀者之理解。';
+            } else if (moderateErrors >= 3 || (moderateErrors >= 1 && !hasComplexStructures)) {
+                // 對應4級分範例：有錯誤但不影響理解
+                grade = 4;
+                gradeDescription = '大致正確表達題目之要求；文法、用字等有誤，但不影響讀者之理解。';
+            } else {
+                // 對應5級分範例：幾乎無錯誤，表達流暢
+                grade = 5;
+                gradeDescription = '正確表達題目之要求；文法、用字等幾乎無誤。';
+            }
+            
+            // 改寫文字
+            let improvedText = text;
+            errorRules.forEach(rule => {
+                if (typeof rule.correct === 'string') {
+                    improvedText = improvedText.replace(rule.pattern, rule.correct);
+                }
+            });
+            
+            return {
+                originalText: text,
+                errors: errors,
+                improvedText: improvedText,
+                grade: grade,
+                gradeDescription: gradeDescription,
+                errorTypes: Array.from(errorTypes),
+                suggestions: generateSuggestions(errorTypes, criticalErrors, moderateErrors, minorErrors),
+                errorCounts: {
+                    critical: criticalErrors,
+                    moderate: moderateErrors,
+                    minor: minorErrors
+                },
+                textComplexity: {
+                    sentences: sentences.length,
+                    words: words.length,
+                    avgWordsPerSentence: avgWordsPerSentence.toFixed(1),
+                    hasConnectors: hasConnectors,
+                    hasComplexStructures: hasComplexStructures
+                }
+            };
+        }
+        
+        // 產生建議
+        function generateSuggestions(errorTypes, criticalErrors, moderateErrors, minorErrors) {
+            const suggestions = [];
+            const errorTypesArray = Array.isArray(errorTypes) ? errorTypes : Array.from(errorTypes || []);
+            
+            // 根據總體表現給予主要學習方向
+            if (criticalErrors >= 3) {
+                suggestions.push('🎯 學習重點：從最基礎的句型開始，先掌握「主詞 + 動詞 + 受詞」的基本結構。');
+                suggestions.push('📚 建議練習：每天寫5個簡單句，注意基本單字拼寫（如 dad, animals, wonderful）。');
+            } else if (criticalErrors >= 1) {
+                suggestions.push('🎯 學習重點：加強基本句型和常用動詞的正確用法。');
+                suggestions.push('📚 建議練習：練習「call someone to do something」等常用句型。');
+            }
+            
+            // 針對特定錯誤類型給予建議
+            if (errorTypesArray.includes('基本句型錯誤')) {
+                suggestions.push('💡 句型建議：學習「媽媽叫我起床」的正確說法是 "Mom calls me to get up"，注意 to 的使用。');
+            }
+            
+            if (errorTypesArray.includes('拼寫錯誤')) {
+                if (criticalErrors > 0) {
+                    suggestions.push('✏️ 拼寫練習：重點練習家庭成員（dad, mom）和基本動物（animals, elephant）的拼寫。');
+                } else {
+                    suggestions.push('✏️ 拼寫練習：注意較長單字的拼寫，如 restaurant, delicious, wonderful。');
+                }
+            }
+            
+            if (errorTypesArray.includes('動詞變化錯誤') || errorTypesArray.includes('動詞用法錯誤')) {
+                suggestions.push('🔤 動詞練習：記住 "he/she/it" 後面的動詞要加 s，但 "they" 後面不用加。');
+            }
+            
+            if (errorTypesArray.includes('句型錯誤') && moderateErrors > 0) {
+                suggestions.push('🔗 連接詞練習：學習使用 "because", "after", "then" 來讓文章更有邏輯。');
+            }
+            
+            if (errorTypesArray.includes('冠詞錯誤')) {
+                suggestions.push('📝 冠詞練習：記住 "a/an" 用於第一次提到的事物，"the" 用於特定或再次提到的事物。');
+            }
+            
+            // 根據級分給予整體學習建議
+            const totalErrors = criticalErrors + moderateErrors;
+            
+            if (totalErrors === 0) {
+                suggestions.push('🌟 表現優秀！可以開始練習更複雜的句型和豐富的詞彙表達。');
+            } else if (criticalErrors === 0 && moderateErrors <= 2) {
+                suggestions.push('👍 基礎很好！繼續練習時態一致性和更自然的表達方式。');
+            } else if (criticalErrors <= 1) {
+                suggestions.push('📈 進步空間很大！建議每天練習基本句型，重點改善最常見的錯誤。');
+            } else {
+                suggestions.push('🏗️ 建議從基礎重新開始：簡單句 → 基本單字 → 動詞變化，一步一步來。');
+            }
+            
+            return suggestions;
+        }
+        
+        // 顯示結果
+        function displayResults(result) {
+            try {
+                console.log('開始顯示結果:', result);
+                
+                const recognizedText = document.getElementById('recognizedText');
+                const errorList = document.getElementById('errorList');
+                const improvedText = document.getElementById('improvedText');
+                const gradeNumber = document.getElementById('gradeNumber');
+                const gradeText = document.getElementById('gradeText');
+                const suggestions = document.getElementById('suggestions');
+                const errorTypes = document.getElementById('errorTypes');
+                
+                if (recognizedText) {
+                    recognizedText.textContent = result.originalText;
+                    console.log('辨識文字已顯示');
+                }
+                
+                if (errorList) {
+                    errorList.innerHTML = '';
+                    
+                    if (result.errors.length === 0) {
+                        const li = document.createElement('li');
+                        li.style.cssText = 'background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-left: 4px solid #10b981; padding: 15px; border-radius: 8px; color: #065f46;';
+                        li.innerHTML = '🎉 恭喜！未發現明顯錯誤。';
+                        errorList.appendChild(li);
+                    } else {
+                        result.errors.forEach((error, index) => {
+                            const li = document.createElement('li');
+                            li.className = 'error-item';
+                            li.innerHTML = `
+                                <div class="error-original">錯誤 ${index + 1}：${error.original}</div>
+                                <div class="error-correct">正確：${error.correct}</div>
+                                <div style="color: #6b7280; font-size: 0.9rem; margin-top: 5px;">${error.type} - ${error.explanation}</div>
+                            `;
+                            errorList.appendChild(li);
+                        });
+                    }
+                    console.log('錯誤列表已顯示');
+                }
+                
+                if (improvedText) {
+                    improvedText.textContent = result.improvedText;
+                    console.log('改寫文字已顯示');
+                }
+                
+                if (gradeNumber) {
+                    gradeNumber.textContent = result.grade;
+                    console.log('評級數字已顯示');
+                }
+                
+                if (gradeText) {
+                    gradeText.textContent = `${result.grade}級分 - ${result.gradeDescription}`;
+                    console.log('評級說明已顯示');
+                }
+                
+                if (suggestions) {
+                    suggestions.innerHTML = result.suggestions.map(s => `<p style="margin-bottom: 10px;">• ${s}</p>`).join('');
+                    console.log('建議已顯示');
+                }
+                
+                if (errorTypes) {
+                    if (result.errorTypes.length === 0) {
+                        errorTypes.innerHTML = '<span style="color: #059669; font-weight: 600;">未發現主要錯誤類型</span>';
+                    } else {
+                        errorTypes.innerHTML = result.errorTypes.map(type => 
+                            `<span class="error-tag">${type}</span>`
+                        ).join('');
+                    }
+                    console.log('錯誤類型已顯示');
+                }
+                
+                console.log('所有結果顯示完成');
+                
+            } catch (error) {
+                console.error('顯示結果時發生錯誤:', error);
+                alert('顯示結果時發生錯誤：' + error.message);
+            }
+        }
+        
+        // 下載PDF報告
+        function downloadPDF() {
+            if (!analysisResult) {
+                alert('沒有分析結果可以下載');
+                return;
+            }
+            
+            // 創建文字報告
+            const reportContent = generateTextReport();
+            const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'essay-grading-report.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // 生成文字報告
+        function generateTextReport() {
+            if (!analysisResult) return '';
+            
+            let report = '學生作文評分報告（Google Cloud Vision API）\n';
+            report += '=========================================================\n\n';
+            
+            report += '1. 辨識文字\n';
+            report += '----------\n';
+            report += analysisResult.originalText + '\n\n';
+            
+            report += '2. 錯誤分析\n';
+            report += '----------\n';
+            if (analysisResult.errors.length === 0) {
+                report += '未發現明顯錯誤\n\n';
+            } else {
+                analysisResult.errors.forEach((error, index) => {
+                    report += `${index + 1}. 錯誤：${error.original}\n`;
+                    report += `   正確：${error.correct}\n`;
+                    report += `   類型：${error.type} - ${error.explanation}\n\n`;
+                });
+            }
+            
+            report += '3. 改寫後版本\n';
+            report += '------------\n';
+            report += analysisResult.improvedText + '\n\n';
+            
+            report += '4. 整題評級\n';
+            report += '----------\n';
+            report += `評級：${analysisResult.grade}級分\n`;
+            report += `說明：${analysisResult.gradeDescription}\n\n`;
+            
+            report += '5. 建議改進方式\n';
+            report += '--------------\n';
+            analysisResult.suggestions.forEach((suggestion, index) => {
+                report += `${index + 1}. ${suggestion}\n`;
+            });
+            report += '\n';
+            
+            report += '6. 學生主要錯誤類型\n';
+            report += '------------------\n';
+            if (analysisResult.errorTypes.length === 0) {
+                report += '未發現主要錯誤類型\n';
+            } else {
+                report += analysisResult.errorTypes.join('、') + '\n';
+            }
+            
+            report += '\n\n生成時間：' + new Date().toLocaleString('zh-TW');
+            report += '\n辨識技術：Google Cloud Vision API';
+            
+            return report;
+        }
+    </script>
+</body>
+</html>

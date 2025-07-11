@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生作文評分系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            padding: 40px;
+        }
+        
+        .ai-notice {
+            background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
+            border: 2px solid #0288d1;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .ai-notice h3 {
+            color: #01579b;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .ai-notice p {
+            color: #0277bd;
+            line-height: 1.6;
+        }
+        
+        .demo-section {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border: 2px solid #22c55e;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .demo-button {
+            background: linear-gradient(45deg, #22c55e, #16a34a);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+        
+        .upload-section {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border: 3px dashed #cbd5e1;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .upload-section:hover {
+            border-color: #4f46e5;
+            background: linear-gradient(135deg, #f1f5f9, #ddd6fe);
+            transform: translateY(-2px);
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            color: #4f46e5;
+            margin-bottom: 20px;
+        }
+        
+        .upload-text {
+            font-size: 1.3rem;
+            color: #334155;
+            margin-bottom: 10px;
+        }
+        
+        .upload-hint {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        #imageInput {
+            display: none;
+        }
+        
+        .preview-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .manual-input {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border: 2px solid #f59e0b;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .manual-input h3 {
+            color: #92400e;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .manual-input textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 1px solid #d97706;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+        }
+        
+        .manual-input textarea:focus {
+            outline: none;
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .instruction-box {
+            background: linear-gradient(135deg, #fef7ff, #f3e8ff);
+            border: 2px solid #a855f7;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .instruction-box h3 {
+            color: #7c2d12;
+            margin-bottom: 10px;
+        }
+        
+        .instruction-box p {
+            color: #6b21a8;
+            line-height: 1.6;
+        }
+        
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .result-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left: 5px solid #4f46e5;
+        }
+        
+        .result-section h3 {
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .recognized-text {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .error-list {
+            list-style: none;
+        }
+        
+        .error-item {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+        
+        .error-original {
+            color: #dc2626;
+            font-weight: bold;
+        }
+        
+        .error-correct {
+            color: #059669;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .grade-display {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border-radius: 15px;
+            border: 2px solid #10b981;
+        }
+        
+        .grade-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #059669;
+            margin-bottom: 10px;
+        }
+        
+        .grade-text {
+            font-size: 1.2rem;
+            color: #065f46;
+        }
+        
+        .improved-text {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #0ea5e9;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .suggestions {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .error-types {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .error-tag {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                min-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI作文評分系統</h1>
+            <p>使用先進AI技術進行文字辨識與智能評分</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="ai-notice">
+                <h3>🚀 升級版AI辨識技術</h3>
+                <p>本系統結合AI助手的視覺分析能力，提供高準確度的文字辨識和專業評分。<br>
+                上傳圖片後，可直接在對話中請AI助手分析，或使用文字輸入框進行快速評分。</p>
+            </div>
+            
+            <div class="demo-section">
+                <h3 style="color: #16a34a; margin-bottom: 10px;">🎯 快速體驗</h3>
+                <p style="margin-bottom: 15px; color: #166534;">選擇示範作文進行分析：</p>
+                <button class="demo-button" onclick="useDemoText('good')">📄 示範作文(優良)</button>
+                <button class="demo-button" onclick="useDemoText('average')">📄 示範作文(普通)</button>
+                <button class="demo-button" onclick="useDemoText('poor')">📄 示範作文(需改進)</button>
+            </div>
+            
+            <div class="upload-section" onclick="triggerFileInput()">
+                <div class="upload-icon">📸</div>
+                <div class="upload-text">點擊上傳作文照片</div>
+                <div class="upload-hint">支援 JPG、PNG 格式</div>
+                <input type="file" id="imageInput" accept="image/*" style="display: none;">
+            </div>
+            
+            <div class="preview-container" id="previewContainer"></div>
+            
+            <div class="instruction-box" id="instructionBox">
+                <h3>📋 接下來的步驟</h3>
+                <p>圖片已上傳！現在您可以：<br>
+                1. 在下方對話框中發送圖片，並請AI助手分析<br>
+                2. 或者將辨識出的文字貼到下方文字框中進行分析</p>
+            </div>
+            
+            <div class="manual-input">
+                <h3>✏️ 或者直接輸入作文內容：</h3>
+                <textarea id="manualText" placeholder="請在此輸入學生的作文內容..."></textarea>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="analyzeEssay()">
+                    🔍 分析文字內容
+                </button>
+                <button class="btn btn-secondary" id="downloadBtn" onclick="downloadPDF()" disabled>
+                    📄 下載PDF報告
+                </button>
+            </div>
+            
+            <div class="results" id="results">
+                <div class="result-section">
+                    <h3>📖 1. 辨識文字</h3>
+                    <div class="recognized-text" id="recognizedText"></div>
+                </div>
+                
+                <div class="result-section">
+                    <h3>❌ 2. 錯誤分析</h3>
+                    <ul class="error-list" id="errorList"></ul>
+                </div>
+                
+                <div class="result-section">
+                    <h3>✏️ 3. 改寫後版本</h3>
+                    <div class="improved-text" id="improvedText"></div>
+                </div>
+                
+                <div class="result-section">
+                    <h3>🎯 4. 整題評級</h3>
+                    <div class="grade-display">
+                        <div class="grade-number" id="gradeNumber">-</div>
+                        <div class="grade-text" id="gradeText">等待分析...</div>
+                    </div>
+                </div>
+                
+                <div class="result-section">
+                    <h3>💡 5. 建議改進方式</h3>
+                    <div class="suggestions" id="suggestions"></div>
+                </div>
+                
+                <div class="result-section">
+                    <h3>🏷️ 6. 學生主要錯誤類型</h3>
+                    <div class="error-types" id="errorTypes"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全域變數
+        let currentImage = null;
+        let analysisResult = null;
+        
+        // 示範文字數據
+        const demoTexts = {
+            good: "It's Sunday morning. Mom woke Shiau-fang up at eight because Dad decides to take all family outside. They will visit the animals in the zoo, like elephants, tigers and monkeys. And then they'll have some fast-food for lunch. For Shiau-fang, it will be a great day.",
+            average: "On Sunday, Shiau-fang's mom calls her to get up at 8:00 in the morning. Because Shiau-fang's dad wants to take his family out today. At first, they go to the zoo. There are many animals in the zoo. They all have fun there. After they go to the zoo, they decide to go to the fast-food restaurant to have their lunch.",
+            poor: "Today morning, my mom call me get up, my ded want take our to zoo, we see a lot of animos, like.... elephants, monkey, big ber..... we have fun today, and night we go to the bergerking to eat handberger. We are so hungry and happy. I have a wenderful day."
+        };
+        
+        // 觸發檔案輸入
+        function triggerFileInput() {
+            const input = document.getElementById('imageInput');
+            if (input) {
+                input.click();
+            }
+        }
+        
+        // 使用示範文字
+        function useDemoText(type) {
+            try {
+                const text = demoTexts[type];
+                const textArea = document.getElementById('manualText');
+                if (textArea && text) {
+                    textArea.value = text;
+                    analyzeEssay();
+                }
+            } catch (error) {
+                console.error('示範文字錯誤:', error);
+                alert('載入示範文字時發生錯誤，請重試');
+            }
+        }
+        
+        // 處理圖片上傳
+        function handleImageUpload() {
+            const input = document.getElementById('imageInput');
+            if (input) {
+                input.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        currentImage = file;
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            try {
+                                const previewContainer = document.getElementById('previewContainer');
+                                const instructionBox = document.getElementById('instructionBox');
+                                
+                                if (previewContainer) {
+                                    previewContainer.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="上傳的作文照片">`;
+                                }
+                                if (instructionBox) {
+                                    instructionBox.style.display = 'block';
+                                }
+                            } catch (error) {
+                                console.error('圖片預覽錯誤:', error);
+                                alert('圖片預覽失敗，請重試');
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        }
+        
+        // 分析文字內容
+        function analyzeEssay() {
+            try {
+                const textArea = document.getElementById('manualText');
+                if (!textArea) {
+                    alert('找不到文字輸入區域');
+                    return;
+                }
+                
+                const manualText = textArea.value.trim();
+                
+                if (!manualText) {
+                    alert('請輸入作文內容或上傳照片');
+                    return;
+                }
+                
+                // 分析結果
+                analysisResult = analyzeText(manualText);
+                
+                // 顯示結果
+                displayResults(analysisResult);
+                
+                const results = document.getElementById('results');
+                const downloadBtn = document.getElementById('downloadBtn');
+                
+                if (results) {
+                    results.style.display = 'block';
+                    results.scrollIntoView({ behavior: 'smooth' });
+                }
+                
+                if (downloadBtn) {
+                    downloadBtn.disabled = false;
+                }
+                
+            } catch (error) {
+                console.error('分析錯誤:', error);
+                alert('分析過程中發生錯誤，請重試');
+            }
+        }
+        
+        // 文字分析邏輯
+        function analyzeText(text) {
+            const errors = [];
+            const errorTypes = new Set();
+            
+            // 清理文字
+            text = text.trim();
+            
+            // 常見錯誤檢測規則
+            const errorRules = [
+                { pattern: /\bded\b/gi, correct: 'dad', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
+                { pattern: /\banimos\b/gi, correct: 'animals', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
+                { pattern: /\bber\b/gi, correct: 'bear', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
+                { pattern: /\bhandberger\b/gi, correct: 'hamburger', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
+                { pattern: /\bbergerking\b/gi, correct: 'Burger King', type: '拼寫錯誤', explanation: '品牌名稱拼寫錯誤' },
+                { pattern: /\bwenderful\b/gi, correct: 'wonderful', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
+                { pattern: /\bmom call\b/gi, correct: 'mom calls', type: '動詞變化錯誤', explanation: '第三人稱單數動詞需加s' },
+                { pattern: /\bwant take our\b/gi, correct: 'wants to take us', type: '動詞錯誤', explanation: '動詞時態和不定詞用法錯誤' },
+                { pattern: /\bToday morning\b/gi, correct: 'This morning', type: '句型錯誤', explanation: '時間表達方式錯誤' },
+                { pattern: /\band night we\b/gi, correct: 'and at night we', type: '句型錯誤', explanation: '缺少介詞' },
+                { pattern: /\.{4,}/g, correct: '...', type: '標點錯誤', explanation: '過多的省略號' }
+            ];
+            
+            // 檢測錯誤
+            errorRules.forEach(rule => {
+                const matches = text.match(rule.pattern);
+                if (matches) {
+                    matches.forEach(match => {
+                        errors.push({
+                            original: match,
+                            correct: rule.correct,
+                            type: rule.type,
+                            explanation: rule.explanation
+                        });
+                        errorTypes.add(rule.type);
+                    });
+                }
+            });
+            
+            // 評分邏輯
+            let grade = 5;
+            let gradeDescription = '';
+            
+            if (errors.length === 0) {
+                grade = 5;
+                gradeDescription = '正確表達題目之要求；文法、用字等幾乎無誤。';
+            } else if (errors.length <= 2) {
+                grade = 4;
+                gradeDescription = '大致正確表達題目之要求；文法、用字等有誤，但不影響讀者之理解。';
+            } else if (errors.length <= 4) {
+                grade = 3;
+                gradeDescription = '大致回答題目之要求，但未能完全達意；文法、用字等有誤，稍影響讀者之理解。';
+            } else if (errors.length <= 6) {
+                grade = 2;
+                gradeDescription = '部分回答題目之要求，表達上有令人不解/誤解之處；文法、用字等皆有誤，讀者須耐心解讀。';
+            } else {
+                grade = 1;
+                gradeDescription = '僅回答1個問題或重點；文法、用字等錯誤過多，嚴重影響讀者之理解。';
+            }
+            
+            // 改寫文字
+            let improvedText = text;
+            errorRules.forEach(rule => {
+                improvedText = improvedText.replace(rule.pattern, rule.correct);
+            });
+            
+            return {
+                originalText: text,
+                errors: errors,
+                improvedText: improvedText,
+                grade: grade,
+                gradeDescription: gradeDescription,
+                errorTypes: Array.from(errorTypes),
+                suggestions: generateSuggestions(errorTypes, errors.length)
+            };
+        }
+        
+        // 產生建議
+        function generateSuggestions(errorTypes, errorCount) {
+            const suggestions = [];
+            
+            if (errorTypes.includes('拼寫錯誤')) {
+                suggestions.push('建議加強基礎單字的拼寫練習，可以使用字典或拼字練習軟體。');
+            }
+            if (errorTypes.includes('動詞變化錯誤') || errorTypes.includes('動詞錯誤')) {
+                suggestions.push('需要加強動詞時態和人稱的概念，特別是第三人稱單數的用法。');
+            }
+            if (errorTypes.includes('句型錯誤')) {
+                suggestions.push('建議多閱讀英文文章，學習完整的句型結構和表達方式。');
+            }
+            if (errorTypes.includes('標點錯誤')) {
+                suggestions.push('需要注意標點符號的正確使用方法。');
+            }
+            
+            // 根據錯誤數量給予整體建議
+            if (errorCount === 0) {
+                suggestions.push('表現優秀！建議持續練習以提升寫作的流暢度和多樣性。');
+            } else if (errorCount <= 2) {
+                suggestions.push('整體表現良好，建議針對個別錯誤類型進行加強練習。');
+            } else if (errorCount <= 4) {
+                suggestions.push('需要加強基礎文法概念，建議多做相關練習題。');
+            } else {
+                suggestions.push('建議從基礎文法開始複習，多練習簡單句型的正確使用。');
+            }
+            
+            return suggestions;
+        }
+        
+        // 顯示結果
+        function displayResults(result) {
+            try {
+                const recognizedText = document.getElementById('recognizedText');
+                const errorList = document.getElementById('errorList');
+                const improvedText = document.getElementById('improvedText');
+                const gradeNumber = document.getElementById('gradeNumber');
+                const gradeText = document.getElementById('gradeText');
+                const suggestions = document.getElementById('suggestions');
+                const errorTypes = document.getElementById('errorTypes');
+                
+                if (recognizedText) {
+                    recognizedText.textContent = result.originalText;
+                }
+                
+                if (errorList) {
+                    errorList.innerHTML = '';
+                    
+                    if (result.errors.length === 0) {
+                        const li = document.createElement('li');
+                        li.style.cssText = 'background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-left: 4px solid #10b981; padding: 15px; border-radius: 8px; color: #065f46;';
+                        li.innerHTML = '🎉 恭喜！未發現明顯錯誤。';
+                        errorList.appendChild(li);
+                    } else {
+                        result.errors.forEach((error, index) => {
+                            const li = document.createElement('li');
+                            li.className = 'error-item';
+                            li.innerHTML = `
+                                <div class="error-original">錯誤 ${index + 1}：${error.original}</div>
+                                <div class="error-correct">正確：${error.correct}</div>
+                                <div style="color: #6b7280; font-size: 0.9rem; margin-top: 5px;">${error.type} - ${error.explanation}</div>
+                            `;
+                            errorList.appendChild(li);
+                        });
+                    }
+                }
+                
+                if (improvedText) {
+                    improvedText.textContent = result.improvedText;
+                }
+                
+                if (gradeNumber) {
+                    gradeNumber.textContent = result.grade;
+                }
+                
+                if (gradeText) {
+                    gradeText.textContent = `${result.grade}級分 - ${result.gradeDescription}`;
+                }
+                
+                if (suggestions) {
+                    suggestions.innerHTML = result.suggestions.map(s => `<p style="margin-bottom: 10px;">• ${s}</p>`).join('');
+                }
+                
+                if (errorTypes) {
+                    if (result.errorTypes.length === 0) {
+                        errorTypes.innerHTML = '<span style="color: #059669; font-weight: 600;">未發現主要錯誤類型</span>';
+                    } else {
+                        errorTypes.innerHTML = result.errorTypes.map(type => 
+                            `<span class="error-tag">${type}</span>`
+                        ).join('');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('顯示結果錯誤:', error);
+                alert('顯示結果時發生錯誤');
+            }
+        }
+        
+        // 下載PDF - 簡化版本，避免外部依賴
+        function downloadPDF() {
+            if (!analysisResult) {
+                alert('沒有分析結果可以下載');
+                return;
+            }
+            
+            try {
+                // 創建報告內容
+                const reportContent = generateReport();
+                
+                // 創建並下載文字報告
+                const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'essay-grading-report.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('下載報告錯誤:', error);
+                alert('下載報告時發生錯誤，請重試');
+            }
+        }
+        
+        // 生成報告內容
+        function generateReport() {
+            if (!analysisResult) return '';
+            
+            let report = '學生作文評分報告\n';
+            report += '==========================================\n\n';
+            
+            report += '1. 辨識文字\n';
+            report += '----------\n';
+            report += analysisResult.originalText + '\n\n';
+            
+            report += '2. 錯誤分析\n';
+            report += '----------\n';
+            if (analysisResult.errors.length === 0) {
+                report += '未發現明顯錯誤\n\n';
+            } else {
+                analysisResult.errors.forEach((error, index) => {
+                    report += `${index + 1}. 錯誤：${error.original}\n`;
+                    report += `   正確：${error.correct}\n`;
+                    report += `   類型：${error.type} - ${error.explanation}\n\n`;
+                });
+            }
+            
+            report += '3. 改寫後版本\n';
+            report += '------------\n';
+            report += analysisResult.improvedText + '\n\n';
+            
+            report += '4. 整題評級\n';
+            report += '----------\n';
+            report += `評級：${analysisResult.grade}級分\n`;
+            report += `說明：${analysisResult.gradeDescription}\n\n`;
+            
+            report += '5. 建議改進方式\n';
+            report += '--------------\n';
+            analysisResult.suggestions.forEach((suggestion, index) => {
+                report += `${index + 1}. ${suggestion}\n`;
+            });
+            report += '\n';
+            
+            report += '6. 學生主要錯誤類型\n';
+            report += '------------------\n';
+            if (analysisResult.errorTypes.length === 0) {
+                report += '未發現主要錯誤類型\n';
+            } else {
+                report += analysisResult.errorTypes.join('、') + '\n';
+            }
+            
+            report += '\n\n生成時間：' + new Date().toLocaleString('zh-TW');
+            
+            return report;
+        }
+        
+        // 初始化事件監聽器
+        function initializeEventListeners() {
+            try {
+                handleImageUpload();
+                console.log('事件監聽器初始化完成');
+            } catch (error) {
+                console.error('初始化錯誤:', error);
+            }
+        }
+        
+        // 頁面載入完成後初始化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeEventListeners);
+        } else {
+            initializeEventListeners();
+        }
+    </script>
+</body>
+</html>

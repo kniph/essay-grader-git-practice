@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英文寫作自動批改系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .input-section, .output-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 3px solid #4facfe;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 200px;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            display: none;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .score-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .score-label {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .feedback-category {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid #4facfe;
+        }
+
+        .category-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .feedback-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid #28a745;
+        }
+
+        .feedback-item.warning {
+            border-left-color: #ffc107;
+        }
+
+        .feedback-item.error {
+            border-left-color: #dc3545;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-number {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #4facfe;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 英文寫作自動批改系統</h1>
+            <p>智能分析學生寫作，提供專業建議與評分</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">📋 輸入寫作內容</h2>
+                
+                <div class="form-group">
+                    <label for="studentName">學生姓名：</label>
+                    <input type="text" id="studentName" placeholder="請輸入學生姓名">
+                </div>
+
+                <div class="form-group">
+                    <label for="assignmentType">作業類型：</label>
+                    <select id="assignmentType">
+                        <option value="essay">議論文 (Essay)</option>
+                        <option value="narrative">記敘文 (Narrative)</option>
+                        <option value="descriptive">描述文 (Descriptive)</option>
+                        <option value="letter">書信 (Letter)</option>
+                        <option value="report">報告 (Report)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="gradeLevel">GEPT 程度：</label>
+                    <select id="gradeLevel">
+                        <option value="elementary">GEPT 初級 (Elementary)</option>
+                        <option value="intermediate">GEPT 中級 (Intermediate)</option>
+                        <option value="high-intermediate">GEPT 中高級 (High-Intermediate)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="essayContent">寫作內容：</label>
+                    <textarea id="essayContent" placeholder="請貼上學生的英文寫作內容..."></textarea>
+                </div>
+
+                <button class="btn" onclick="analyzeEssay()">🔍 開始批改</button>
+            </div>
+
+            <div class="output-section">
+                <h2 class="section-title">📊 批改結果</h2>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>正在分析寫作內容，請稍候...</p>
+                </div>
+
+                <div class="results" id="results">
+                    <div class="score-display">
+                        <div class="score-number" id="overallScore">3</div>
+                        <div class="score-label">GEPT 級分 (滿分5分)</div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number" id="wordCount">0</div>
+                            <div class="stat-label">字數</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="sentenceCount">0</div>
+                            <div class="stat-label">句數</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="paragraphCount">0</div>
+                            <div class="stat-label">段落數</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="avgWordsPerSentence">0</div>
+                            <div class="stat-label">平均句長</div>
+                        </div>
+                    </div>
+
+                    <div id="feedbackContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 語法規則和常見錯誤檢查
+        const grammarRules = {
+            // 主詞動詞一致性
+            subjectVerbAgreement: [
+                {pattern: /\b(he|she|it)\s+(are|have)\b/gi, message: "主詞動詞不一致：he/she/it 應該搭配 is/has"},
+                {pattern: /\b(they|we|you)\s+(is|has)\b/gi, message: "主詞動詞不一致：they/we/you 應該搭配 are/have"},
+                {pattern: /\b(I)\s+(are|is)\b/gi, message: "主詞動詞不一致：I 應該搭配 am"}
+            ],
+            
+            // 時態一致性
+            tenseConsistency: [
+                {pattern: /\byesterday\s+.*\s+(will|am going to|are going to)\b/gi, message: "時態不一致：yesterday 應該搭配過去式"},
+                {pattern: /\btomorrow\s+.*\s+(was|were|did)\b/gi, message: "時態不一致：tomorrow 應該搭配未來式"},
+                {pattern: /\bnext week\s+.*\s+(was|were|did)\b/gi, message: "時態不一致：next week 應該搭配未來式"}
+            ],
+            
+            // 冠詞使用
+            articles: [
+                {pattern: /\b(a)\s+[aeiou]/gi, message: "冠詞錯誤：母音前應使用 'an'"},
+                {pattern: /\b(an)\s+[bcdfghjklmnpqrstvwxyz]/gi, message: "冠詞錯誤：子音前應使用 'a'"}
+            ],
+            
+            // 複數形式
+            plurals: [
+                {pattern: /\bmany\s+\w+(?<!s)\b/gi, message: "many 後面應該接複數名詞"},
+                {pattern: /\bfew\s+\w+(?<!s)\b/gi, message: "few 後面應該接複數名詞"}
+            ]
+        };
+
+        // 更完善的詞彙分析 - 新增高級詞彙檢測
+        const vocabularyLevels = {
+            basic: ['good', 'bad', 'big', 'small', 'nice', 'happy', 'sad', 'easy', 'hard', 'fun', 'like', 'want', 'need', 'help', 'work', 'play', 'go', 'come', 'see', 'know'],
+            intermediate: ['excellent', 'terrible', 'enormous', 'tiny', 'pleasant', 'delighted', 'disappointed', 'challenging', 'difficult', 'entertaining', 'appreciate', 'require', 'assist', 'accomplish', 'participate', 'examine', 'understand', 'recognize'],
+            advanced: ['exceptional', 'atrocious', 'colossal', 'minuscule', 'exquisite', 'ecstatic', 'devastated', 'formidable', 'arduous', 'captivating', 'comprehend', 'facilitate', 'demonstrate', 'establish', 'contribute', 'significant', 'optimistic', 'considerate', 'interpersonal', 'personality']
+        };
+
+        // 更完善的轉折詞檢測
+        const transitionWords = ['however', 'moreover', 'furthermore', 'therefore', 'consequently', 'nevertheless', 'additionally', 'in contrast', 'on the other hand', 'as a result', 'first', 'second', 'third', 'finally', 'in conclusion', 'for example', 'for instance', 'in addition', 'besides', 'meanwhile', 'although', 'despite', 'whereas', 'similarly', 'likewise'];
+
+        function analyzeEssay() {
+            const content = document.getElementById('essayContent').value.trim();
+            const studentName = document.getElementById('studentName').value.trim();
+            const assignmentType = document.getElementById('assignmentType').value;
+            const gradeLevel = document.getElementById('gradeLevel').value;
+
+            if (!content) {
+                alert('請輸入寫作內容！');
+                return;
+            }
+
+            // 顯示載入動畫
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            // 模擬分析過程
+            setTimeout(() => {
+                const analysis = performAnalysis(content, assignmentType, gradeLevel);
+                displayResults(analysis, studentName);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('results').style.display = 'block';
+            }, 2000);
+        }
+
+        function performAnalysis(content, assignmentType, gradeLevel) {
+            // 基本統計
+            const words = content.toLowerCase().match(/\b\w+\b/g) || [];
+            const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+            
+            const wordCount = words.length;
+            const sentenceCount = sentences.length;
+            const paragraphCount = paragraphs.length;
+            const avgWordsPerSentence = Math.round(wordCount / sentenceCount) || 0;
+
+            // 語法檢查
+            const grammarErrors = checkGrammar(content);
+            
+            // 詞彙分析
+            const vocabularyAnalysis = analyzeVocabulary(words);
+            
+            // 結構分析
+            const structureAnalysis = analyzeStructure(content, assignmentType);
+            
+            // 逐句錯誤分析
+            const sentenceErrors = analyzeSentenceErrors(sentences, grammarErrors);
+            
+            // 生成修正版文章
+            const correctedEssay = generateCorrectedEssay(content, sentences, sentenceErrors);
+            
+            // 計算總分
+            const overallScore = calculateOverallScore(grammarErrors, vocabularyAnalysis, structureAnalysis, wordCount, gradeLevel);
+
+            return {
+                stats: {
+                    wordCount,
+                    sentenceCount,
+                    paragraphCount,
+                    avgWordsPerSentence
+                },
+                overallScore,
+                grammarErrors,
+                vocabularyAnalysis,
+                structureAnalysis,
+                sentenceErrors,
+                correctedEssay,
+                originalSentences: sentences
+            };
+        }
+
+        function checkGrammar(content) {
+            const errors = [];
+            const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            
+            // 檢查各種語法規則
+            Object.entries(grammarRules).forEach(([category, rules]) => {
+                rules.forEach(rule => {
+                    const matches = content.match(rule.pattern);
+                    if (matches) {
+                        matches.forEach(match => {
+                            // 找出錯誤所在的句子
+                            const sentenceIndex = findSentenceWithError(sentences, match);
+                            errors.push({
+                                type: 'error',
+                                category: category,
+                                message: rule.message,
+                                example: match,
+                                sentenceIndex: sentenceIndex,
+                                sentence: sentences[sentenceIndex] || ''
+                            });
+                        });
+                    }
+                });
+            });
+
+            // 檢查標點符號
+            if (!/[.!?]$/.test(content.trim())) {
+                errors.push({
+                    type: 'warning',
+                    category: 'punctuation',
+                    message: '文章結尾缺少標點符號',
+                    example: '',
+                    sentenceIndex: sentences.length - 1,
+                    sentence: sentences[sentences.length - 1] || ''
+                });
+            }
+
+            // 檢查句子開頭大寫
+            sentences.forEach((sentence, index) => {
+                const trimmed = sentence.trim();
+                if (trimmed && !/^[A-Z]/.test(trimmed)) {
+                    errors.push({
+                        type: 'warning',
+                        category: 'capitalization',
+                        message: '句子開頭應該大寫',
+                        example: trimmed.substring(0, 20) + '...',
+                        sentenceIndex: index,
+                        sentence: trimmed
+                    });
+                }
+            });
+
+            return errors;
+        }
+
+        function findSentenceWithError(sentences, errorText) {
+            for (let i = 0; i < sentences.length; i++) {
+                if (sentences[i].toLowerCase().includes(errorText.toLowerCase())) {
+                    return i;
+                }
+            }
+            return 0;
+        }
+
+        function analyzeVocabulary(words) {
+            const uniqueWords = [...new Set(words)];
+            const vocabularyLevel = {
+                basic: 0,
+                intermediate: 0,
+                advanced: 0
+            };
+
+            words.forEach(word => {
+                if (vocabularyLevels.basic.includes(word)) {
+                    vocabularyLevel.basic++;
+                } else if (vocabularyLevels.intermediate.includes(word)) {
+                    vocabularyLevel.intermediate++;
+                } else if (vocabularyLevels.advanced.includes(word)) {
+                    vocabularyLevel.advanced++;
+                }
+            });
+
+            const repetitiveWords = findRepetitiveWords(words);
+            const transitionWordCount = countTransitionWords(words);
+
+            return {
+                uniqueWordRatio: (uniqueWords.length / words.length * 100).toFixed(1),
+                vocabularyLevel,
+                repetitiveWords,
+                transitionWordCount
+            };
+        }
+
+        function findRepetitiveWords(words) {
+            const wordCount = {};
+            words.forEach(word => {
+                if (word.length > 3) { // 只檢查長度大於3的詞
+                    wordCount[word] = (wordCount[word] || 0) + 1;
+                }
+            });
+
+            return Object.entries(wordCount)
+                .filter(([word, count]) => count > 3)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+        }
+
+        function countTransitionWords(words) {
+            return words.filter(word => transitionWords.includes(word)).length;
+        }
+
+        function analyzeStructure(content, assignmentType) {
+            const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+            const hasIntroduction = paragraphs.length > 0;
+            const hasConclusion = paragraphs.length > 2;
+            const hasBodyParagraphs = paragraphs.length > 1;
+
+            const structureScore = (hasIntroduction ? 30 : 0) + 
+                                 (hasBodyParagraphs ? 40 : 0) + 
+                                 (hasConclusion ? 30 : 0);
+
+            return {
+                paragraphCount: paragraphs.length,
+                hasIntroduction,
+                hasBodyParagraphs,
+                hasConclusion,
+                structureScore
+            };
+        }
+
+        function calculateOverallScore(grammarErrors, vocabularyAnalysis, structureAnalysis, wordCount, gradeLevel) {
+            if (gradeLevel === 'elementary') {
+                return calculateElementaryScore(grammarErrors, vocabularyAnalysis, structureAnalysis, wordCount);
+            } else if (gradeLevel === 'intermediate') {
+                return calculateIntermediateScore(grammarErrors, vocabularyAnalysis, structureAnalysis, wordCount);
+            } else {
+                return calculateHighIntermediateScore(grammarErrors, vocabularyAnalysis, structureAnalysis, wordCount);
+            }
+        }
+
+        function calculateElementaryScore(grammarErrors, vocabularyAnalysis, structureAnalysis, wordCount) {
+            // GEPT初級5級分標準評分
+            let score = 5;
+
+            const grammarErrorCount = grammarErrors.filter(e => e.type === 'error').length;
+            const grammarWarningCount = grammarErrors.filter(e => e.type === 'warning').length;
+            const vocabularyErrorScore = calculateVocabularyErrorScore(vocabularyAnalysis);
+            const contentScore = calculateContentScore(structureAnalysis, wordCount);
+            
+            if (grammarErrorCount === 0 && grammarWarningCount <= 1 && vocabularyErrorScore >= 4 && contentScore >= 4) {
+                score = 5; // 正確表達題目要求，文法用字幾乎無誤
+            } else if (grammarErrorCount <= 2 && vocabularyErrorScore >= 3 && contentScore >= 3) {
+                score = 4; // 大致正確表達，有誤但不影響理解
+            } else if (grammarErrorCount <= 4 && vocabularyErrorScore >= 2 && contentScore >= 2) {
+                score = 3; // 大致回答題目，但未能完全達意，稍影響理解
+            } else if (grammarErrorCount <= 7 && (vocabularyErrorScore >= 1 || contentScore >= 1)) {
+                score = 2; // 部分回答題目，表達有令人不解之處，須耐心解讀
+            } else if (wordCount > 20) {
+                score = 1; // 僅回答1個問題或重點，錯誤過多，嚴重影響理解
+            } else {
+                score = 0; // 未答或等同未答
+            }
+
+            return score;
+        }
+
+        function calculateIntermediateScore(grammarErrors, vocabularyAnalysis, structureAnalysis, wordCount) {
+            // GEPT中級評分標準 (滿分60分)
+            let score = 60;
+
+            const grammarErrorCount = grammarErrors.filter(e => e.type === 'error').length;
+            const grammarWarningCount = grammarErrors.filter(e => e.type === 'warning').length;
+            
+            // 內容適切性評估 (30%)
+            let contentScore = 18;
+            if (wordCount < 96) contentScore -= 6; // 少於120字的80%
+            if (wordCount < 72) contentScore -= 6; // 少於120字的60%
+            if (!structureAnalysis.hasIntroduction || !structureAnalysis.hasConclusion) contentScore -= 3;
+            if (structureAnalysis.paragraphCount < 2) contentScore -= 3;
+            
+            // 組織條理性評估 (20%)
+            let organizationScore = 12;
+            if (structureAnalysis.paragraphCount < 3) organizationScore -= 4;
+            if (vocabularyAnalysis.transitionWordCount === 0) organizationScore -= 2;
+            
+            // 語言運用評估 (50%)
+            let languageScore = 30;
+            languageScore -= grammarErrorCount * 2; // 語法錯誤扣分
+            languageScore -= grammarWarningCount * 1; // 語法警告扣分
+            
+            // 詞彙多樣性評估
+            if (parseFloat(vocabularyAnalysis.uniqueWordRatio) < 60) languageScore -= 3;
+            if (vocabularyAnalysis.repetitiveWords.length > 3) languageScore -= 2;
+            
+            const totalScore = Math.max(0, contentScore + organizationScore + languageScore);
+            
+            // 轉換為級分
+            if (totalScore >= 54) return 5; // 90% 以上 = 5級分
+            if (totalScore >= 42) return 4; // 70% 以上 = 4級分  
+            if (totalScore >= 30) return 3; // 50% 以上 = 3級分
+            if (totalScore >= 18) return 2; // 30% 以上 = 2級分
+            if (totalScore >= 6) return 1;  // 10% 以上 = 1級分
+            return 0;
+        }
+
+        function calculateHighIntermediateScore(grammarErrors, vocabularyAnalysis, structureAnalysis, wordCount) {
+            // GEPT中高級評分標準 (滿分60分)
+            let score = 60;
+
+            const grammarErrorCount = grammarErrors.filter(e => e.type === 'error').length;
+            const grammarWarningCount = grammarErrors.filter(e => e.type === 'warning').length;
+            
+            // 字數檢查 (中高級要求150-180字)
+            let wordPenalty = 0;
+            if (wordCount < 40) return 0; // 少於40字直接0分
+            if (wordCount < 120) wordPenalty += 8; // 字數過短扣分
+            else if (wordCount < 150) wordPenalty += 4; // 未達最低建議字數
+            
+            // 內容適切性評估 (40%) - 更重視論證和例證
+            let contentScore = 24;
+            contentScore -= wordPenalty;
+            if (structureAnalysis.paragraphCount < 3) contentScore -= 6; // 缺乏完整論證結構
+            if (!structureAnalysis.hasIntroduction) contentScore -= 4;
+            if (!structureAnalysis.hasConclusion) contentScore -= 4;
+            
+            // 組織連貫性評估 (30%) - 強調邏輯性和連貫性
+            let organizationScore = 18;
+            if (vocabularyAnalysis.transitionWordCount === 0) organizationScore -= 6; // 缺乏轉折詞
+            if (vocabularyAnalysis.transitionWordCount < 2) organizationScore -= 3;
+            if (structureAnalysis.paragraphCount < 4) organizationScore -= 3; // 論證不夠充分
+            
+            // 語言運用評估 (30%) - 更高標準的語法和詞彙要求
+            let languageScore = 18;
+            languageScore -= grammarErrorCount * 3; // 語法錯誤扣分更重
+            languageScore -= grammarWarningCount * 1.5; // 語法警告扣分
+            
+            // 詞彙和句型多樣性 (中高級要求更高)
+            if (parseFloat(vocabularyAnalysis.uniqueWordRatio) < 70) languageScore -= 4;
+            if (parseFloat(vocabularyAnalysis.uniqueWordRatio) < 60) languageScore -= 4;
+            if (vocabularyAnalysis.repetitiveWords.length > 2) languageScore -= 3;
+            if (vocabularyAnalysis.vocabularyLevel.advanced === 0) languageScore -= 2; // 缺乏高級詞彙
+            
+            const totalScore = Math.max(0, contentScore + organizationScore + languageScore);
+            
+            // 轉換為級分 (中高級標準更嚴格)
+            if (totalScore >= 55) return 5; // 92% 以上 = 5級分
+            if (totalScore >= 44) return 4; // 73% 以上 = 4級分  
+            if (totalScore >= 32) return 3; // 53% 以上 = 3級分
+            if (totalScore >= 20) return 2; // 33% 以上 = 2級分
+            if (totalScore >= 8) return 1;  // 13% 以上 = 1級分
+            return 0;
+        }
+
+        function calculateVocabularyErrorScore(vocabularyAnalysis) {
+            let score = 5;
+            
+            // 重複用字過多
+            if (vocabularyAnalysis.repetitiveWords.length > 3) score -= 1;
+            if (vocabularyAnalysis.repetitiveWords.length > 5) score -= 1;
+            
+            // 詞彙多樣性不足
+            if (parseFloat(vocabularyAnalysis.uniqueWordRatio) < 50) score -= 1;
+            if (parseFloat(vocabularyAnalysis.uniqueWordRatio) < 30) score -= 1;
+            
+            return Math.max(1, score);
+        }
+
+        function calculateContentScore(structureAnalysis, wordCount) {
+            let score = 5;
+            
+            // 字數不足 (根據各級標準調整)
+            const gradeLevel = document.getElementById('gradeLevel').value;
+            const expectedWords = getExpectedWordCount(gradeLevel);
+            
+            if (wordCount < expectedWords * 0.6) score -= 2; // 少於60%扣2分
+            else if (wordCount < expectedWords * 0.8) score -= 1; // 少於80%扣1分
+            
+            // 結構不完整
+            if (!structureAnalysis.hasIntroduction) score -= 1;
+            if (structureAnalysis.paragraphCount < 2) score -= 1;
+            
+            return Math.max(1, score);
+        }
+
+        function getExpectedWordCount(gradeLevel) {
+            const expectations = {
+                elementary: 50,        // GEPT初級建議字數
+                intermediate: 120,     // GEPT中級建議字數 (8-12句)
+                'high-intermediate': 165 // GEPT中高級建議字數 (150-180字中間值)
+            };
+            return expectations[gradeLevel] || 50;
+        }
+
+        function analyzeSentenceErrors(sentences, grammarErrors) {
+            const sentenceErrorMap = {};
+            
+            // 初始化每個句子的錯誤記錄
+            sentences.forEach((sentence, index) => {
+                sentenceErrorMap[index] = {
+                    original: sentence.trim(),
+                    errors: [],
+                    corrections: []
+                };
+            });
+            
+            // 將語法錯誤分配到對應句子
+            grammarErrors.forEach(error => {
+                const sentIndex = error.sentenceIndex !== undefined ? error.sentenceIndex : 0;
+                if (sentenceErrorMap[sentIndex]) {
+                    sentenceErrorMap[sentIndex].errors.push(error);
+                }
+            });
+            
+            // 為每個句子生成修正建議
+            Object.keys(sentenceErrorMap).forEach(index => {
+                const sentData = sentenceErrorMap[index];
+                if (sentData && sentData.errors.length > 0) {
+                    sentData.corrections = generateCorrections(sentData.original, sentData.errors);
+                }
+            });
+            
+            return sentenceErrorMap;
+        }
+
+        function generateCorrections(sentence, errors) {
+            if (!sentence || !errors || errors.length === 0) return [];
+            
+            const corrections = [];
+            let correctedSentence = sentence;
+            
+            errors.forEach(error => {
+                let suggestion = '';
+                let correctedVersion = sentence;
+                
+                try {
+                    switch (error.category) {
+                        case 'subjectVerbAgreement':
+                            if (error.example && (error.example.includes('he') || error.example.includes('she') || error.example.includes('it'))) {
+                                suggestion = '主詞為第三人稱單數，動詞應使用 is/has/does';
+                                correctedVersion = sentence.replace(/\b(he|she|it)\s+(are|have)\b/gi, (match, subj, verb) => {
+                                    return subj + (verb.toLowerCase() === 'are' ? ' is' : ' has');
+                                });
+                            } else if (error.example && (error.example.includes('they') || error.example.includes('we') || error.example.includes('you'))) {
+                                suggestion = '主詞為複數或第二人稱，動詞應使用 are/have/do';
+                                correctedVersion = sentence.replace(/\b(they|we|you)\s+(is|has)\b/gi, (match, subj, verb) => {
+                                    return subj + (verb.toLowerCase() === 'is' ? ' are' : ' have');
+                                });
+                            }
+                            break;
+                        
+                        case 'articles':
+                            if (error.example && error.example.toLowerCase().startsWith('a ')) {
+                                suggestion = '母音前應使用 "an"';
+                                correctedVersion = sentence.replace(/\ba\s+([aeiou])/gi, 'an $1');
+                            } else if (error.example && error.example.toLowerCase().startsWith('an ')) {
+                                suggestion = '子音前應使用 "a"';
+                                correctedVersion = sentence.replace(/\ban\s+([bcdfghjklmnpqrstvwxyz])/gi, 'a $1');
+                            }
+                            break;
+                        
+                        case 'capitalization':
+                            suggestion = '句子開頭應該大寫';
+                            correctedVersion = sentence.charAt(0).toUpperCase() + sentence.slice(1);
+                            break;
+                        
+                        case 'punctuation':
+                            suggestion = '句子結尾應加上適當的標點符號';
+                            if (!/[.!?]$/.test(sentence.trim())) {
+                                correctedVersion = sentence.trim() + '.';
+                            }
+                            break;
+                        
+                        default:
+                            suggestion = error.message || '建議檢查此句的語法';
+                            
+                            // 針對常見錯誤提供簡單修正
+                            if (sentence.includes('eats dinner')) {
+                                correctedVersion = sentence.replace('eats dinner', 'eat dinner');
+                            }
+                            if (sentence.includes('restaurent')) {
+                                correctedVersion = sentence.replace('restaurent', 'restaurant');
+                            }
+                            if (sentence.includes('look a lot of')) {
+                                correctedVersion = sentence.replace('look a lot of', 'see a lot of');
+                            }
+                            if (sentence.includes('calls her getting up')) {
+                                correctedVersion = sentence.replace('calls her getting up', 'calls her to get up');
+                            }
+                    }
+                    
+                    corrections.push({
+                        error: error.message || '語法錯誤',
+                        suggestion: suggestion,
+                        corrected: correctedVersion
+                    });
+                    
+                    correctedSentence = correctedVersion;
+                } catch (e) {
+                    console.error('Error in generateCorrections:', e);
+                    // 如果出錯，至少提供基本建議
+                    corrections.push({
+                        error: error.message || '語法錯誤',
+                        suggestion: '建議檢查此句的語法',
+                        corrected: sentence
+                    });
+                }
+            });
+            
+            return corrections;
+        }
+
+        function generateCorrectedEssay(originalContent, sentences, sentenceErrors) {
+            if (!sentences || !sentenceErrors) return originalContent;
+            
+            let correctedEssay = originalContent;
+            const paragraphs = originalContent.split(/\n\s*\n/);
+            
+            // 處理每個段落
+            let correctedParagraphs = paragraphs.map(paragraph => {
+                let correctedParagraph = paragraph;
+                
+                // 從後往前替換句子，避免位置偏移
+                for (let i = sentences.length - 1; i >= 0; i--) {
+                    const sentData = sentenceErrors[i];
+                    if (sentData && sentData.corrections && sentData.corrections.length > 0) {
+                        const finalCorrection = sentData.corrections[sentData.corrections.length - 1];
+                        if (finalCorrection && finalCorrection.corrected) {
+                            correctedParagraph = correctedParagraph.replace(sentData.original.trim(), finalCorrection.corrected.trim());
+                        }
+                    }
+                }
+                
+                return correctedParagraph;
+            });
+            
+            return correctedParagraphs.join('\n\n');
+        }
+        function displayResults(analysis, studentName) {
+            // 更新統計數據
+            document.getElementById('overallScore').textContent = analysis.overallScore;
+            document.getElementById('wordCount').textContent = analysis.stats.wordCount;
+            document.getElementById('sentenceCount').textContent = analysis.stats.sentenceCount;
+            document.getElementById('paragraphCount').textContent = analysis.stats.paragraphCount;
+            document.getElementById('avgWordsPerSentence').textContent = analysis.stats.avgWordsPerSentence;
+
+            // 生成反饋
+            const feedbackContainer = document.getElementById('feedbackContainer');
+            const gradeLevel = document.getElementById('gradeLevel').value;
+            feedbackContainer.innerHTML = '';
+
+            // 語法反饋 - 顯示逐句錯誤分析
+            if (analysis.sentenceErrors && Object.keys(analysis.sentenceErrors).length > 0) {
+                const grammarSection = createDetailedGrammarSection(analysis.sentenceErrors, analysis.originalSentences);
+                feedbackContainer.appendChild(grammarSection);
+            }
+
+            // 詞彙反饋
+            const vocabularyFeedback = [];
+            if (parseFloat(analysis.vocabularyAnalysis.uniqueWordRatio) < 60) {
+                vocabularyFeedback.push({
+                    type: 'warning',
+                    text: `詞彙重複率較高 (${analysis.vocabularyAnalysis.uniqueWordRatio}%)，建議使用更多樣的詞彙`
+                });
+            }
+
+            // 詞彙建議增強 (特別針對中高級)
+            if (analysis.vocabularyAnalysis.repetitiveWords.length > 0) {
+                vocabularyFeedback.push({
+                    type: 'warning',
+                    text: `重複使用的詞彙: ${analysis.vocabularyAnalysis.repetitiveWords.map(([word, count]) => `${word}(${count}次)`).join(', ')}`
+                });
+            }
+
+            if (analysis.vocabularyAnalysis.transitionWordCount === 0) {
+                vocabularyFeedback.push({
+                    type: 'error',
+                    text: '缺乏轉折詞！建議使用連接詞來提高文章連貫性，如: however, moreover, therefore, for example 等'
+                });
+            } else if (analysis.vocabularyAnalysis.transitionWordCount < 2 && gradeLevel === 'high-intermediate') {
+                vocabularyFeedback.push({
+                    type: 'warning',
+                    text: '中高級寫作建議使用更多轉折詞來增強文章邏輯性和連貫性'
+                });
+            }
+
+            if (gradeLevel === 'high-intermediate' && analysis.vocabularyAnalysis.vocabularyLevel.advanced === 0) {
+                vocabularyFeedback.push({
+                    type: 'warning',
+                    text: '中高級寫作建議使用一些高級詞彙來展現語言能力，如: significant, establish, demonstrate 等'
+                });
+            }
+
+            if (vocabularyFeedback.length > 0) {
+                const vocabSection = createFeedbackSection('詞彙建議', vocabularyFeedback);
+                feedbackContainer.appendChild(vocabSection);
+            }
+
+            // 結構反饋 (根據不同程度給予不同建議)
+            const structureFeedback = [];
+            if (!analysis.structureAnalysis.hasIntroduction) {
+                structureFeedback.push({
+                    type: 'error',
+                    text: '缺乏引言段落！建議添加引言來介紹主題'
+                });
+            }
+
+            if (!analysis.structureAnalysis.hasConclusion) {
+                if (gradeLevel === 'elementary') {
+                    structureFeedback.push({
+                        type: 'warning',
+                        text: '建議添加結論段落來總結全文'
+                    });
+                } else {
+                    structureFeedback.push({
+                        type: 'error',
+                        text: '缺乏結論段落！中級以上寫作必須有完整的結論'
+                    });
+                }
+            }
+
+            if (analysis.structureAnalysis.paragraphCount < 3) {
+                if (gradeLevel === 'high-intermediate') {
+                    structureFeedback.push({
+                        type: 'error',
+                        text: '中高級寫作需要至少3-4個段落：引言、主體段落(1-2個)、結論'
+                    });
+                } else if (gradeLevel === 'intermediate') {
+                    structureFeedback.push({
+                        type: 'warning',
+                        text: '建議增加段落數量來豐富內容論證'
+                    });
+                } else {
+                    structureFeedback.push({
+                        type: 'warning',
+                        text: '文章段落較少，建議增加內容豐富度'
+                    });
+                }
+            }
+
+            // 字數檢查
+            const expectedWords = getExpectedWordCount(gradeLevel);
+            if (analysis.stats.wordCount < expectedWords * 0.8) {
+                structureFeedback.push({
+                    type: 'error',
+                    text: `字數不足！${gradeLevel === 'elementary' ? '初級' : gradeLevel === 'intermediate' ? '中級' : '中高級'}建議字數為${expectedWords}字，目前只有${analysis.stats.wordCount}字`
+                });
+            }
+
+            if (structureFeedback.length > 0) {
+                const structureSection = createFeedbackSection('結構建議', structureFeedback);
+                feedbackContainer.appendChild(structureSection);
+            }
+
+            // 總體評價
+            const overallFeedback = generateOverallFeedback(analysis.overallScore, gradeLevel);
+            if (overallFeedback.length > 0) {
+                const overallSection = createFeedbackSection('總體評價', overallFeedback);
+                feedbackContainer.appendChild(overallSection);
+            }
+
+            // 修正版文章
+            if (analysis.correctedEssay && analysis.correctedEssay !== document.getElementById('essayContent').value.trim()) {
+                const correctedSection = createCorrectedEssaySection(analysis.correctedEssay);
+                feedbackContainer.appendChild(correctedSection);
+            }
+        }
+
+        function createDetailedGrammarSection(sentenceErrors, originalSentences) {
+            if (!sentenceErrors || !originalSentences) return document.createElement('div');
+            
+            const section = document.createElement('div');
+            section.className = 'feedback-category';
+            
+            const titleElement = document.createElement('div');
+            titleElement.className = 'category-title';
+            titleElement.textContent = '📝 逐句錯誤分析與修正建議';
+            section.appendChild(titleElement);
+
+            let hasErrors = false;
+
+            Object.keys(sentenceErrors).forEach(index => {
+                const sentData = sentenceErrors[index];
+                if (sentData && sentData.errors && sentData.errors.length > 0) {
+                    hasErrors = true;
+                    const sentenceDiv = document.createElement('div');
+                    sentenceDiv.className = 'sentence-analysis';
+                    sentenceDiv.style.cssText = `
+                        background: #fff;
+                        border: 1px solid #e1e5e9;
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin-bottom: 15px;
+                        border-left: 4px solid #dc3545;
+                    `;
+
+                    // 原句
+                    const originalDiv = document.createElement('div');
+                    originalDiv.style.cssText = `
+                        background: #f8d7da;
+                        padding: 10px;
+                        border-radius: 5px;
+                        margin-bottom: 10px;
+                        border-left: 3px solid #dc3545;
+                    `;
+                    originalDiv.innerHTML = `<strong>第${parseInt(index) + 1}句 (原文):</strong><br>"${sentData.original}"`;
+                    sentenceDiv.appendChild(originalDiv);
+
+                    // 錯誤列表
+                    const errorList = document.createElement('ul');
+                    errorList.style.cssText = `
+                        margin: 10px 0;
+                        padding-left: 20px;
+                    `;
+
+                    sentData.errors.forEach(error => {
+                        const errorItem = document.createElement('li');
+                        errorItem.style.cssText = `
+                            color: #dc3545;
+                            margin-bottom: 5px;
+                        `;
+                        errorItem.textContent = `❌ ${error.message}`;
+                        errorList.appendChild(errorItem);
+                    });
+                    sentenceDiv.appendChild(errorList);
+
+                    // 修正建議
+                    if (sentData.corrections && sentData.corrections.length > 0) {
+                        const correctionDiv = document.createElement('div');
+                        correctionDiv.style.cssText = `
+                            background: #d1edff;
+                            padding: 10px;
+                            border-radius: 5px;
+                            border-left: 3px solid #0066cc;
+                        `;
+                        const finalCorrection = sentData.corrections[sentData.corrections.length - 1];
+                        if (finalCorrection && finalCorrection.corrected) {
+                            correctionDiv.innerHTML = `<strong>✅ 修正建議:</strong><br>"${finalCorrection.corrected}"`;
+                        }
+                        sentenceDiv.appendChild(correctionDiv);
+                    }
+
+                    section.appendChild(sentenceDiv);
+                }
+            });
+
+            if (!hasErrors) {
+                const noErrorDiv = document.createElement('div');
+                noErrorDiv.style.cssText = `
+                    background: #d4edda;
+                    padding: 15px;
+                    border-radius: 8px;
+                    color: #155724;
+                    text-align: center;
+                `;
+                noErrorDiv.textContent = '🎉 太棒了！沒有發現明顯的語法錯誤。';
+                section.appendChild(noErrorDiv);
+            }
+
+            return section;
+        }
+
+        function createCorrectedEssaySection(correctedEssay) {
+            const section = document.createElement('div');
+            section.className = 'feedback-category';
+            
+            const titleElement = document.createElement('div');
+            titleElement.className = 'category-title';
+            titleElement.textContent = '📄 修正後完整文章';
+            section.appendChild(titleElement);
+
+            const essayDiv = document.createElement('div');
+            essayDiv.style.cssText = `
+                background: #f8fff8;
+                border: 2px solid #28a745;
+                border-radius: 10px;
+                padding: 20px;
+                margin-top: 15px;
+                font-family: 'Courier New', monospace;
+                line-height: 1.8;
+                white-space: pre-wrap;
+            `;
+            essayDiv.textContent = correctedEssay;
+            section.appendChild(essayDiv);
+
+            // 複製按鈕
+            const copyButton = document.createElement('button');
+            copyButton.textContent = '📋 複製修正版文章';
+            copyButton.className = 'btn';
+            copyButton.style.cssText = `
+                margin-top: 10px;
+                background: #28a745;
+                font-size: 14px;
+                padding: 10px 20px;
+            `;
+            copyButton.onclick = function() {
+                navigator.clipboard.writeText(correctedEssay).then(() => {
+                    copyButton.textContent = '✅ 已複製！';
+                    setTimeout(() => {
+                        copyButton.textContent = '📋 複製修正版文章';
+                    }, 2000);
+                });
+            };
+            section.appendChild(copyButton);
+
+            return section;
+        }
+
+        function createFeedbackSection(title, feedbackItems) {
+            const section = document.createElement('div');
+            section.className = 'feedback-category';
+            
+            const titleElement = document.createElement('div');
+            titleElement.className = 'category-title';
+            titleElement.textContent = title;
+            section.appendChild(titleElement);
+
+            feedbackItems.forEach(item => {
+                const feedbackItem = document.createElement('div');
+                feedbackItem.className = `feedback-item ${item.type}`;
+                feedbackItem.textContent = item.text;
+                section.appendChild(feedbackItem);
+            });
+
+            return section;
+        }
+
+        function generateOverallFeedback(score, gradeLevel) {
+            const feedback = [];
+            
+            if (gradeLevel === 'elementary') {
+                if (score === 5) {
+                    feedback.push({
+                        type: 'success',
+                        text: '5級分：正確表達題目之要求；文法、用字等幾乎無誤。'
+                    });
+                } else if (score === 4) {
+                    feedback.push({
+                        type: 'success',
+                        text: '4級分：大致正確表達題目之要求；文法、用字等有誤，但不影響讀者之理解。'
+                    });
+                } else if (score === 3) {
+                    feedback.push({
+                        type: 'warning',
+                        text: '3級分：大致回答題目之要求，但未能完全達意；文法、用字等有誤，稍影響讀者之理解。'
+                    });
+                } else if (score === 2) {
+                    feedback.push({
+                        type: 'warning',
+                        text: '2級分：部分回答題目之要求，表達上有令人不解/誤解之處；文法、用字等皆有誤，讀者須耐心解讀。'
+                    });
+                } else if (score === 1) {
+                    feedback.push({
+                        type: 'error',
+                        text: '1級分：僅回答1個問題或重點；文法、用字等錯誤過多，嚴重影響讀者之理解。'
+                    });
+                } else {
+                    feedback.push({
+                        type: 'error',
+                        text: '0級分：未答、等同未答。'
+                    });
+                }
+            } else if (gradeLevel === 'intermediate') {
+                if (score === 5) {
+                    feedback.push({
+                        type: 'success',
+                        text: '5級分 (60分)：寫作能力佳 - 內容適切表達題目要求，清楚有條理；組織甚佳；能靈活運用字彙及句型；文法、拼字或標點符號偶有錯誤。'
+                    });
+                } else if (score === 4) {
+                    feedback.push({
+                        type: 'success',
+                        text: '4級分 (48分)：寫作能力可 - 內容符合題目要求，大致清楚；組織大致完整；能正確運用字彙及句型；文法、拼字或標點符號雖有錯誤，但不影響理解。'
+                    });
+                } else if (score === 3) {
+                    feedback.push({
+                        type: 'warning',
+                        text: '3級分 (36分)：寫作能力有限 - 內容大致符合題目要求，但未完全達意；組織尚可；字彙及句型掌握不佳；文法、拼字、標點符號錯誤偏多，影響理解。'
+                    });
+                } else if (score === 2) {
+                    feedback.push({
+                        type: 'warning',
+                        text: '2級分 (24分)：稍具寫作能力 - 內容局部符合題目要求，大多難以理解；組織不良；能運用的字彙及句型有限；文法、拼字、標點符號有許多錯誤。'
+                    });
+                } else if (score === 1) {
+                    feedback.push({
+                        type: 'error',
+                        text: '1級分 (12分)：無寫作能力 - 內容未能符合題目要求，無法理解；缺乏組織；能運用的字彙及句型非常有限；文法、拼字、標點符號有過多錯誤。'
+                    });
+                } else {
+                    feedback.push({
+                        type: 'error',
+                        text: '0級分 (0分)：未答/等同未答。'
+                    });
+                }
+            } else {
+                // 中高級評分
+                if (score === 5) {
+                    feedback.push({
+                        type: 'success',
+                        text: '5級分 (60分)：內容妥切表達題目要求，組織完整，全文連貫通順；能靈活且妥切的運用字彙及各類句型結構，鮮有錯誤。'
+                    });
+                } else if (score === 4) {
+                    feedback.push({
+                        type: 'success',
+                        text: '4級分 (48分)：內容符合題目要求，組織完整，全文大致連貫；能正確的運用字彙及句型結構，但仍偶有錯誤。'
+                    });
+                } else if (score === 3) {
+                    feedback.push({
+                        type: 'warning',
+                        text: '3級分 (36分)：內容大致符合題目要求，組織尚可，連貫性待加強；能夠運用常用字彙及基本句型結構，但使用較難的字彙或複雜句時常有錯誤。'
+                    });
+                } else if (score === 2) {
+                    feedback.push({
+                        type: 'warning',
+                        text: '2級分 (24分)：內容僅能局部符合題目之要求，組織不完整且缺乏連貫性；字彙有限，運用基本句型結構常有錯誤，影響理解。'
+                    });
+                } else if (score === 1) {
+                    feedback.push({
+                        type: 'error',
+                        text: '1級分 (12分)：內容未能符合題目要求，組織不良；字彙有限，運用基本句型結構有許多錯誤，大多難以理解。'
+                    });
+                } else {
+                    feedback.push({
+                        type: 'error',
+                        text: '0級分 (0分)：未答/等同未答。文章過短 (少於40字)、無法評分、內容完全無法理解、完全離題。'
+                    });
+                }
+            }
+
+            return feedback;
+        }
+
+        // 初始化範例 - 根據程度顯示不同範例
+        window.onload = function() {
+            const gradeSelect = document.getElementById('gradeLevel');
+            const essayTextarea = document.getElementById('essayContent');
+            
+            function updateExample() {
+                const level = gradeSelect.value;
+                if (level === 'elementary') {
+                    essayTextarea.value = `Today is Sunday. Shiau-fang's mother goes to her room, and calls her getting up really. Because they will go to the zoo.
+
+They look a lot of animals in the zoo. There are elephants, tigers and birds over there. So they have a very good time.
+
+And then they eats dinner in a restaurent. They eat and talk there.`;
+                } else if (level === 'intermediate') {
+                    essayTextarea.value = `When I get good grades or good at behavior, my parents usually say "This is your responsible, you should do well." or "That's not bad and make progress next time." They never give me money or gifts. I think that the way of encourage is great and reasonable. I sometimes feel that they are vitally strict to me.
+
+If I am be mother, I'll use the same way to encourage my child. And give him(her) right thinking. This is because that I saw many parents give money or presents too much. I think they are over-love their child. And this way was very bad. They study in order to earn things which they like from their parents, not study in truth.`;
+                } else {
+                    essayTextarea.value = `Although humans are presently the dominant and superior species on earth, when it comes down to the basics, we are no different from the other animals. Like animals, we live in groups, and thus we need to interact with other people. However, that is not always as easy as it seems.
+
+There are some important personal traits which I consider helpful in getting along well with other people. In my opinion, most people like a person with an optimistic, considerate and generous personality.
+
+In the first place, being optimistic plays an important role in interpersonal communication. An optimist always looks on the bright side of things. So, he can easily cheer up a person who feels depressed. For example, when I felt frustrated because I made some mistakes in my job, my co-worker Jane comforted me by saying positive things. Her optimism made me feel much better.
+
+In addition, being considerate is also essential in daily interaction. Most people think of themselves before others. If we can put the need of others in top priority, they will be touched. For example, parents who consider their children's difficulties will have better relationships with them.
+
+Finally, a generous person usually has more friends. Very few people like to make friends with a stingy person. My co-worker Nancy is a good example. She likes to share her books and cookies with us, and that's why most co-workers enjoy spending time with her.
+
+In conclusion, an optimistic, considerate, and generous person can easily get along with other people. They will be surrounded by friends wherever they go.`;
+                }
+            }
+            
+            gradeSelect.addEventListener('change', updateExample);
+            updateExample(); // 初始化顯示
+        };
+    </script>
+</body>
+</html>

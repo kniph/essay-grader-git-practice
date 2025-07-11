@@ -1,0 +1,14 @@
+{
+  "name": "essay-grader-railway",
+  "version": "1.0.0",
+  "description": "Essay grader backend for Railway",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}
